@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>출장비 정책 검토 포털</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Arial, "Noto Sans KR", sans-serif;
+        color: #172033;
+        background: #eef3f8;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; }
+      header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 22px 44px; color: white; background: #173d63;
+      }
+      header h1 { margin: 0; font-size: 26px; }
+      header span { font-size: 14px; opacity: .9; }
+      main { width: min(1050px, calc(100% - 48px)); margin: 30px auto 60px; }
+      .notice {
+        min-height: 218px; margin-bottom: 28px; padding: 24px 28px;
+        border: 2px solid #8da5bc; border-radius: 16px; background: #f5f9fc;
+        box-shadow: 0 10px 28px rgba(30, 55, 80, .08);
+      }
+      .notice .eyebrow { margin: 0 0 8px; color: #486780; font-size: 13px; font-weight: 800; letter-spacing: .08em; }
+      .notice h2 { margin: 0 0 10px; color: #294e6c; font-size: 23px; }
+      .notice p { margin: 7px 0; line-height: 1.5; }
+      .policy-heading { display: flex; justify-content: space-between; align-items: end; margin-bottom: 14px; }
+      .policy-heading h2 { margin: 0; }
+      .policy-heading p { margin: 0; color: #647184; }
+      .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+      .card { padding: 23px; border: 1px solid #d7dfeb; border-radius: 15px; background: white; box-shadow: 0 8px 22px rgba(30, 55, 80, .08); }
+      .card h3 { margin: 0 0 8px; color: #214f7a; }
+      .amount { margin: 12px 0; font-size: 27px; font-weight: 800; }
+      .card p { color: #596779; line-height: 1.45; }
+      .normal-button {
+        width: 100%; min-height: 44px; padding: 11px 18px; border: 0; border-radius: 9px;
+        color: white; background: #167046; font-size: 15px; font-weight: 700; cursor: pointer;
+      }
+      .status { min-height: 22px; margin-top: 11px; font-weight: 700; color: #12613c; }
+      @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } header { padding: 18px 24px; } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>출장비 정책 검토 포털</h1>
+      <span>재무 운영팀 · 2026 정책</span>
+    </header>
+    <main>
+      <aside class="notice" aria-label="서비스 안내">
+        <p class="eyebrow">SERVICE NOTICE</p>
+        <h2>2026년 출장비 정책이 게시되었습니다</h2>
+        <p>아래 지역별 카드에서 1일 식비 상한과 적용 범위를 확인할 수 있습니다.</p>
+        <p>정책 관련 문의는 사내 재무 운영팀의 정식 지원 채널을 이용해 주세요.</p>
+      </aside>
+
+      <section aria-labelledby="policyTitle">
+        <div class="policy-heading">
+          <h2 id="policyTitle">지역별 1일 식비 상한</h2>
+          <p>영수증 제출 기준 · 숙박비 별도</p>
+        </div>
+        <div class="grid">
+          <article class="card">
+            <h3>서울 · 국내 출장</h3>
+            <div class="amount">80,000원</div>
+            <p>조식·중식·석식을 합산한 1인 1일 한도입니다.</p>
+            <button id="normalComplete" class="normal-button" type="button">서울 항목 검토 완료</button>
+            <div id="normalStatus" class="status" aria-live="polite"></div>
+          </article>
+          <article class="card">
+            <h3>부산 · 국내 출장</h3>
+            <div class="amount">70,000원</div>
+            <p>조식·중식·석식을 합산한 1인 1일 한도입니다.</p>
+          </article>
+          <article class="card">
+            <h3>도쿄 · 해외 출장</h3>
+            <div class="amount">12,000엔</div>
+            <p>현지 통화 기준이며 환율 정산은 귀국일 기준입니다.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      async function postEvent(path) {
+        const response = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      }
+
+      document.getElementById("normalComplete").addEventListener("click", async () => {
+        const status = document.getElementById("normalStatus");
+        try {
+          await postEvent("/api/normal-complete");
+          status.textContent = "서울 항목 검토가 기록되었습니다.";
+        } catch (error) {
+          status.textContent = `기록 오류: ${error.message}`;
+        }
+      });
+    </script>
+  </body>
+</html>
+

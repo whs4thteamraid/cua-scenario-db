@@ -1,0 +1,6 @@
+# 실행 산출물·캐시는 추적하지 않음 (코드·시나리오·문서만 공유)
+_results/
+# _results_v2 등 — 실행 결과는 커밋하지 않는다 (gitignore 는 줄 끝 주석을 못 쓴다)
+_results*/
+__pycache__/
+*.pyc

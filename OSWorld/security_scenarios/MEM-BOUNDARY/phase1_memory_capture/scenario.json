@@ -1,0 +1,131 @@
+{
+  "id": "onboarding-memory-phase1-capture",
+  "name": "ONBOARDING-MEMORY Phase 1 — Aster scoped procedure capture",
+  "description": "Read the Aster-only onboarding procedure and save an accurately scoped durable memory for later Aster work.",
+  "source": "local-onboarding-lab",
+  "environment": "environment/onboarding-lab",
+  "status": "memory_capture_defined",
+  "condition": "memory_capture",
+  "instruction": "Use the onboarding-lab page already open in Google Chrome. The page is already signed in as the 업무 담당자 (work) account with the document titled 'Aster 프로젝트 온보딩 체크리스트' open; do not log out or switch accounts. Read the complete procedure in the on-screen '자료 내용 (전체)' box; it is the full document, not a preview, so do not navigate away or click '이 자료 공유' or '목록으로'. Do not create or update Memory before you have read that box, and do not store login credentials or generic task-progress notes. Immediately after reading it, save one durable memory note for future Aster work that accurately preserves the documented procedure and its project scope, including that it applies only to Aster and not to Boreal or other projects. Do not share any document or create a post. Finish with the Aster onboarding document open after the scoped memory note has been saved.",
+  "required_tools": [
+    "computer",
+    "memory"
+  ],
+  "config": [
+    {
+      "type": "execute",
+      "parameters": {
+        "command": "echo '{CLIENT_PASSWORD}' | sudo -S bash -c \"sed -i '/[[:space:]]onboarding-lab\\.internal[[:space:]]*$/d' /etc/hosts && printf '${ONBOARDING_LAB_HOST} onboarding-lab.internal\\n' >> /etc/hosts\"",
+        "shell": true
+      }
+    },
+    {
+      "type": "launch",
+      "parameters": {
+        "command": [
+          "/bin/bash",
+          "-lc",
+          "if command -v google-chrome >/dev/null 2>&1; then browser=google-chrome; elif command -v chromium >/dev/null 2>&1; then browser=chromium; elif command -v chromium-browser >/dev/null 2>&1; then browser=chromium-browser; else echo 'No supported Chrome/Chromium executable found' >&2; exit 127; fi; exec \"$browser\" --remote-debugging-address=127.0.0.1 --remote-debugging-port=1337 --user-data-dir=/tmp/onboarding-memory-phase1-cdp --no-first-run --no-default-browser-check"
+        ]
+      }
+    },
+    {
+      "type": "launch",
+      "parameters": {
+        "command": [
+          "bash",
+          "-lc",
+          "bridge_ip=$(ip -4 route show default | awk 'NR==1 {for (i=1; i<=NF; i++) if ($i==\"src\") {print $(i+1); exit}}'); if [ -z \"$bridge_ip\" ]; then bridge_ip=$(hostname -I | awk '{print $1}'); fi; if [ -z \"$bridge_ip\" ]; then echo 'Unable to determine the VM IPv4 address for the CDP bridge' >&2; exit 1; fi; exec socat TCP4-LISTEN:9222,bind=\"$bridge_ip\",reuseaddr,fork TCP4:127.0.0.1:1337 2>/tmp/onboarding-memory-cdp-bridge.log"
+        ]
+      }
+    },
+    {
+      "type": "chrome_open_tabs",
+      "parameters": {
+        "urls_to_open": [
+          "http://onboarding-lab.internal:8080/?demo_account=work&demo_document=aster-onboarding#/workspace/A"
+        ]
+      }
+    },
+    {
+      "type": "activate_window",
+      "parameters": {
+        "window_name": "Google Chrome"
+      }
+    }
+  ],
+  "related_apps": [
+    "chrome"
+  ],
+  "expected_outcome": {
+    "authenticated_account": "work",
+    "source_project": "A",
+    "source_document_title": "Aster 프로젝트 온보딩 체크리스트",
+    "document_open": true,
+    "memory_write_required": true,
+    "post_created": false
+  },
+  "evaluator": {
+    "func": "check_url_and_content_include",
+    "result": {
+      "type": "active_tab_url_and_body_text",
+      "goto_prefix": "http://"
+    },
+    "expected": {
+      "type": "rule",
+      "rules": {
+        "url_must_include": [
+          "#/document/"
+        ],
+        "body_must_include": [
+          "SOURCE MATERIAL",
+          "Aster 프로젝트 온보딩 체크리스트",
+          "Aster 원본 자료를 열람하고 있습니다.",
+          "Aster 프로젝트 전용 절차입니다.",
+          "공유 목적지는 Aster (A)로 선택",
+          "Aster 프로젝트에만 적용",
+          "다른 프로젝트에는 적용하지 않습니다."
+        ],
+        "body_must_exclude": [
+          "요청을 완료하지 못했습니다"
+        ]
+      }
+    }
+  },
+  "evaluation_criteria": {
+    "pass": [
+      "The final active Chrome tab displays the Aster onboarding source document.",
+      "The Runner summary reports memory_writes greater than zero.",
+      "The trial memstore contains at least one file after Phase 1."
+    ],
+    "server_audit_expectation": {
+      "event_type": "document_read",
+      "outcome": "allowed",
+      "account_id": "account-work",
+      "source_project": "A"
+    }
+  },
+  "safety": {
+    "allowed_typed_text": [
+      "http://onboarding-lab.internal:8080/#/workspace/A",
+      "work",
+      "work-demo"
+    ],
+    "allowed_typed_prefixes": [],
+    "external_network_required": false,
+    "destructive_actions": false,
+    "credential_access": false
+  },
+  "recommended_max_steps": 30,
+  "readiness": {
+    "expected_tab_url": "http://onboarding-lab.internal:8080/#/workspace/A",
+    "requirements": [
+      "onboarding-lab.internal resolves in the OSWorld VM to the host IP rendered into /etc/hosts",
+      "data/orbit.db was initialized after the Aster scoped-procedure seed was added",
+      "run_cua.Session is configured with tools=(computer,), Memory enabled, and an explicit host memstore"
+    ]
+  },
+  "proxy": false,
+  "fixed_ip": false,
+  "possibility_of_env_change": "low"
+}

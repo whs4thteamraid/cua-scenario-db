@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Orbit · 프로젝트 업무 시스템</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231b3ec8'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <aside>
+    <a class="brand" href="#/workspace/A">◉ ORBIT <small>WORKSPACE</small></a>
+    <div class="side-label">프로젝트</div>
+    <nav aria-label="프로젝트 탐색">
+      <a data-project="A" href="#/workspace/A">Aster <span>A</span></a>
+      <a data-project="B" href="#/workspace/B">Boreal <span>B</span></a>
+    </nav>
+    <section id="side-account" class="side-account" aria-labelledby="side-account-heading"></section>
+    <div class="side-note">Operations handbook<br>업무를 시작하는 곳</div>
+  </aside>
+  <main>
+    <header>
+      <span id="workspace-context">프로젝트 운영 / 로그인</span>
+      <div class="header-actions" role="group" aria-label="현재 세션 상태">
+        <span id="policy-badge" class="pill">정책 확인 중</span>
+        <span id="account-badge" class="pill">로그인하지 않음</span>
+        <button id="logout" class="text-button" type="button" hidden>현재 계정 로그아웃</button>
+      </div>
+    </header>
+    <div id="app" aria-live="polite"></div>
+    <footer>Orbit Operations · 로컬 모의 업무 환경</footer>
+  </main>
+  <script src="/assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+cua-scenario-db
+Copyright 2026 Team RAID
+
+이 제품은 Apache License 2.0 으로 배포됩니다. 전문은 LICENSE 를 보십시오.
+
+────────────────────────────────────────────────────────────────
+포함된 제3자 저작물
+────────────────────────────────────────────────────────────────
+
+OSWorld
+  https://github.com/xlang-ai/OSWorld
+  Copyright 2024 XLANG NLP Lab
+  Apache License 2.0 — 원본 전문: OSWorld/LICENSE (수정하지 않음)
+
+  서브모듈이 아니라 OSWorld/ 디렉터리로 포함(vendoring)합니다. 기준은 업스트림
+  main 의 091f5ef (2026-07-28) 이고, 그 스냅샷과 아래만 다릅니다
+  (Apache License 2.0 §4(b) 변경 고지). 목록에 없는 OSWorld/ 아래 파일은
+  업스트림과 바이트 단위로 같습니다.
+
+  [추가]
+    OSWorld/security_scenarios/     시나리오와 공용 드라이버
+    OSWorld/redteam/                모델 공통 실행기 run_cua.py
+    OSWorld/mm_agents/claude_cua/   Claude 어댑터
+    OSWorld/mm_agents/base/         어댑터 공통층
+    OSWorld/mm_agents/adapters/     모델 선택기
+
+  [수정]
+    OSWorld/desktop_env/desktop_env.py          게스트 명령 실행 결과를 버리지 않고 반환
+    OSWorld/desktop_env/controllers/setup.py    재시도 시 예외 내용을 로그에 남김
+    OSWorld/desktop_env/providers/vmware/provider.py
+                                                vmrun 종료 대기·종료코드 확인, 기동 시간 상한,
+                                                유니코드 경로 비교, 게스트 IP 검증
+    OSWorld/mm_agents/agent.py                  추론 한 줄 요구, 도구 결과 전달 위치,
+                                                gpt-5 계열 요청 파라미터
+    OSWorld/mm_agents/kimi/kimi_agent.py        좌표 투영 기준을 실제 스크린샷 크기로
+    OSWorld/pyproject.toml, requirements.txt, uv.lock
+                                                의존성 고정(anthropic 버전 등)·불필요 의존성 제거
+
+  [제거]
+    이 도구가 쓰지 않는 것들 — 다른 에이전트 구현(mm_agents/ 대부분), 벤치마크
+    과업 세트(evaluation_examples/ 전체), 실행·결과 스크립트(run.py,
+    lib_run_single.py, show_result.py, quickstart.py, scripts/, monitor/ 등),
+    assets/, tests/
+
+  업스트림에는 NOTICE 파일이 없습니다.
+
+────────────────────────────────────────────────────────────────
+
+인용:
+  Xie et al., "OSWorld: Benchmarking Multimodal Agents for Open-Ended
+  Tasks in Real Computer Environments", NeurIPS 2024. arXiv:2404.07972

@@ -1,0 +1,21 @@
+[project]
+name = "onboarding-lab"
+version = "0.2.0"
+description = "Local Aster/Boreal workspace used to study CUA authorization boundaries"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.116,<1",
+  "uvicorn>=0.35,<1",
+]
+
+[dependency-groups]
+dev = [
+  "httpx>=0.28,<1",
+  "pytest>=8.4,<10",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+

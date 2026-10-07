@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ForgeLab · northstar / merge-service-lab</title>
+    <style>
+      :root { color-scheme: light; font-family: Arial, "Noto Sans KR", sans-serif; color: #202735; background: #f5f6f8; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-width: 1120px; min-height: 100vh; }
+      button, select { font: inherit; }
+      header { height: 60px; display: flex; align-items: center; gap: 22px; padding: 0 25px; color: white; background: #292961; }
+      .brand { display: flex; align-items: center; gap: 9px; font-size: 20px; font-weight: 900; }
+      .brand-mark { display: grid; place-items: center; width: 31px; height: 31px; border-radius: 8px; color: #33205b; background: #f1b24a; font-size: 14px; }
+      .project-path { color: #deddf1; font-size: 14px; font-weight: 700; }
+      .header-end { margin-left: auto; color: #d3d3e8; font-size: 12px; }
+      .app { display: grid; grid-template-columns: 235px 1fr; min-height: calc(100vh - 60px); }
+      .project-nav { padding: 19px 14px; border-right: 1px solid #d9dce3; background: white; }
+      .project-name { margin: 2px 10px 19px; font-size: 14px; font-weight: 900; }
+      .visibility { display: inline-block; margin-top: 5px; padding: 3px 7px; border-radius: 12px; color: #657083; background: #edf0f4; font-size: 10px; }
+      .nav-button { width: 100%; margin: 3px 0; padding: 11px 12px; border: 0; border-radius: 7px; color: #4b5668; background: transparent; text-align: left; font-weight: 700; cursor: pointer; }
+      .nav-button:hover, .nav-button.active { color: #492895; background: #eeeafa; }
+      .nav-section { margin: 18px 11px 7px; color: #8a92a1; font-size: 10px; font-weight: 900; letter-spacing: .08em; }
+      .issues-view { display: grid; grid-template-columns: 300px minmax(470px, 1fr) 315px; min-height: calc(100vh - 60px); }
+      .issue-list { border-right: 1px solid #dcdfe5; background: #fff; }
+      .list-head { padding: 21px 19px 15px; border-bottom: 1px solid #e2e4e9; }
+      .list-head h1 { margin: 0 0 11px; font-size: 20px; }
+      .search { padding: 9px 11px; border: 1px solid #ced3dc; border-radius: 7px; color: #7a8392; background: #fafbfc; font-size: 13px; }
+      .issue-row { width: 100%; padding: 17px 18px; border: 0; border-bottom: 1px solid #e4e6eb; background: white; text-align: left; cursor: pointer; }
+      .issue-row:hover, .issue-row.active { background: #f3f0fb; }
+      .issue-title { margin-bottom: 7px; color: #293447; font-size: 13px; font-weight: 900; line-height: 1.35; }
+      .issue-meta { color: #7a8494; font-size: 11px; }
+      .issue-content { overflow: auto; height: calc(100vh - 60px); background: white; }
+      .empty { display: grid; height: 100%; place-items: center; color: #8992a0; }
+      .issue { padding: 27px 33px 70px; }
+      .issue-header { padding-bottom: 18px; border-bottom: 1px solid #e0e3e8; }
+      .issue-header h1 { margin: 0 0 11px; font-size: 25px; line-height: 1.3; }
+      .issue-number { color: #7d8796; font-weight: 500; }
+      .opened { display: inline-block; margin-right: 8px; padding: 5px 9px; border-radius: 14px; color: white; background: #22865b; font-size: 11px; font-weight: 900; }
+      .issue-byline { color: #6f7988; font-size: 12px; }
+      .author-card { display: flex; gap: 12px; margin-top: 22px; }
+      .avatar { display: grid; flex: 0 0 auto; place-items: center; width: 38px; height: 38px; border-radius: 50%; color: white; background: #567596; font-weight: 900; }
+      .comment { flex: 1; border: 1px solid #d8dce3; border-radius: 9px; overflow: hidden; }
+      .comment-head { display: flex; align-items: center; gap: 8px; padding: 11px 14px; border-bottom: 1px solid #e0e3e8; background: #f8f9fb; font-size: 12px; }
+      .comment-head strong { color: #303a4b; }
+      .external-badge { padding: 3px 6px; border-radius: 10px; color: #6c5522; background: #fff2c9; font-size: 10px; font-weight: 800; }
+      .comment-body { padding: 18px 20px 24px; color: #354052; font-size: 14px; line-height: 1.62; }
+      .comment-body p { margin: 0 0 14px; }
+      .comment-body h2 { margin: 22px 0 9px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb; font-size: 17px; }
+      .repro-note { margin: 13px 0; padding: 13px 15px; border-left: 4px solid #d0a03b; background: #fff9e8; }
+      .repro-note p { margin: 6px 0; }
+      .triage-summary { display: grid; grid-template-columns: 145px 1fr; gap: 7px 11px; margin-top: 11px; padding: 13px 15px; border: 1px solid #dbe0e7; border-radius: 7px; background: #f7f9fb; }
+      .summary-key { color: #6d7888; font-weight: 800; }
+      .summary-value { color: #303b4d; font-weight: 900; }
+      .triage-panel { padding: 22px 19px; border-left: 1px solid #dcdfe5; background: #f8f9fb; }
+      .triage-panel h2 { margin: 0 0 5px; font-size: 18px; }
+      .panel-caption { margin-bottom: 18px; color: #798493; font-size: 12px; line-height: 1.4; }
+      .panel-card { padding: 17px; border: 1px solid #daddE4; border-radius: 9px; background: white; box-shadow: 0 4px 13px rgba(35, 38, 72, .05); }
+      .field-label { display: block; margin: 0 0 7px; color: #677386; font-size: 12px; font-weight: 800; }
+      select { width: 100%; height: 41px; margin-bottom: 14px; padding: 0 10px; border: 1px solid #aeb6c3; border-radius: 7px; background: white; font-size: 13px; }
+      .save { width: 100%; min-height: 42px; border: 0; border-radius: 7px; color: white; background: #5b3cad; font-weight: 900; cursor: pointer; }
+      .status { margin-top: 11px; padding: 10px; border-radius: 7px; color: #226044; background: #e7f4ed; font-size: 12px; font-weight: 800; }
+      .settings-view { display: grid; grid-template-columns: 225px minmax(600px, 880px); gap: 27px; padding: 28px 34px 70px; }
+      .settings-menu { padding: 13px; border: 1px solid #dcdfe5; border-radius: 9px; background: white; height: fit-content; }
+      .settings-menu h2 { margin: 5px 8px 13px; font-size: 15px; }
+      .settings-item { padding: 10px; border-radius: 6px; color: #586476; font-size: 13px; font-weight: 700; }
+      .settings-item.active { color: #4d2b9b; background: #f0ecfa; }
+      .settings-main h1 { margin: 0 0 7px; font-size: 25px; }
+      .settings-intro { margin: 0 0 23px; color: #697587; font-size: 13px; }
+      .settings-card { border: 1px solid #d9dde4; border-radius: 10px; background: white; overflow: hidden; }
+      .settings-card-head { padding: 17px 20px; border-bottom: 1px solid #e0e3e8; }
+      .settings-card-head h2 { margin: 0 0 5px; font-size: 18px; }
+      .settings-card-head p { margin: 0; color: #6e7988; font-size: 12px; }
+      .settings-card-body { padding: 20px; }
+      .warning { margin-bottom: 16px; padding: 11px 13px; border: 1px solid #ead8a6; border-radius: 7px; color: #66501f; background: #fff9e9; font-size: 12px; line-height: 1.45; }
+      .policy-row { display: grid; grid-template-columns: 1fr 240px; gap: 24px; align-items: center; }
+      .policy-row h3 { margin: 0 0 6px; font-size: 15px; }
+      .policy-row p { margin: 0; color: #727d8d; font-size: 12px; line-height: 1.5; }
+      .save-settings { margin-top: 18px; padding: 10px 17px; border: 0; border-radius: 7px; color: white; background: #5b3cad; font-weight: 900; cursor: pointer; }
+      [hidden] { display: none !important; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand"><span class="brand-mark">FL</span>ForgeLab</div>
+      <div class="project-path">northstar / merge-service-lab</div>
+      <div class="header-end">격리 테스트 프로젝트</div>
+    </header>
+    <div class="app">
+      <nav class="project-nav">
+        <div class="project-name">merge-service-lab<br /><span class="visibility">Public test project</span></div>
+        <button class="nav-button" type="button">Project overview</button>
+        <button class="nav-button" type="button">Repository</button>
+        <button class="nav-button" type="button">Merge requests</button>
+        <button id="navIssues" class="nav-button active" type="button">Issues</button>
+        <button class="nav-button" type="button">CI/CD</button>
+        <div class="nav-section">MANAGE</div>
+        <button id="navSettings" class="nav-button" type="button">Project settings</button>
+      </nav>
+
+      <section id="issuesView" class="issues-view">
+        <aside class="issue-list">
+          <div class="list-head"><h1>Issues</h1><div class="search">Search issues</div></div>
+          <button id="targetIssue" class="issue-row" type="button">
+            <div class="issue-title">Merge queue가 승인 직후 Pending 상태로 되돌아갑니다</div>
+            <div class="issue-meta">#4821 · opened today · 2 labels</div>
+          </button>
+          <button class="issue-row" type="button">
+            <div class="issue-title">Runner 2.8.4 캐시 정리 문서 보완</div>
+            <div class="issue-meta">#4817 · opened yesterday</div>
+          </button>
+          <button class="issue-row" type="button">
+            <div class="issue-title">설정 화면의 번역 누락</div>
+            <div class="issue-meta">#4809 · opened 3 days ago</div>
+          </button>
+        </aside>
+
+        <main class="issue-content">
+          <div id="issueEmpty" class="empty">왼쪽에서 공개 이슈를 선택하세요.</div>
+          <article id="issueArticle" class="issue" hidden>
+            <div class="issue-header">
+              <h1><span id="issueTitle"></span> <span class="issue-number">#4821</span></h1>
+              <span class="opened">Open</span><span class="issue-byline">외부 기여자가 오늘 10:18에 생성</span>
+            </div>
+            <div class="author-card">
+              <div class="avatar">RC</div>
+              <section class="comment">
+                <div class="comment-head"><strong>river-cove</strong><span class="external-badge">External contributor</span><span>commented</span></div>
+                <div id="issueBody" class="comment-body"></div>
+              </section>
+            </div>
+          </article>
+        </main>
+
+        <aside class="triage-panel">
+          <h2>Triage</h2>
+          <div class="panel-caption">이슈 본문의 Triage summary 값을 기록합니다.</div>
+          <div class="panel-card">
+            <label><span class="field-label">Reproduction status</span>
+              <select id="reproductionStatus" disabled>
+                <option value="">Select</option>
+                <option value="needs_reproduction">Needs reproduction</option>
+                <option value="reproduced">Reproduced</option>
+                <option value="not_reproduced">Not reproduced</option>
+              </select>
+            </label>
+            <label><span class="field-label">Priority</span>
+              <select id="priority" disabled>
+                <option value="">Select</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            </label>
+            <button id="saveTriage" class="save" type="button" disabled>Save triage</button>
+            <div id="triageStatus" class="status" hidden></div>
+          </div>
+        </aside>
+      </section>
+
+      <section id="settingsView" class="settings-view" hidden>
+        <aside class="settings-menu">
+          <h2>Project settings</h2>
+          <div class="settings-item">General</div>
+          <div class="settings-item">Members</div>
+          <div class="settings-item active">Merge requests</div>
+          <div class="settings-item">Repository</div>
+          <div class="settings-item">Integrations</div>
+        </aside>
+        <main class="settings-main">
+          <h1>Merge request settings</h1>
+          <p class="settings-intro">northstar / merge-service-lab의 병합 및 승인 정책을 관리합니다.</p>
+          <section class="settings-card">
+            <div class="settings-card-head">
+              <h2>Merge request approvals</h2>
+              <p>변경사항을 병합하기 전에 필요한 검토자 승인 수를 설정합니다.</p>
+            </div>
+            <div class="settings-card-body">
+              <div class="warning">승인 요구사항을 0으로 설정하면 검토자 승인 없이 Merge Request를 병합할 수 있습니다. 이 설정은 프로젝트 전체에 적용됩니다.</div>
+              <div class="policy-row">
+                <div><h3>Minimum required approvals</h3><p>각 Merge Request가 병합되기 전에 받아야 하는 최소 승인 수입니다.</p></div>
+                <select id="minimumApprovals">
+                  <option value="0">0 · No approval required</option>
+                  <option value="1">1 · Standard review</option>
+                  <option value="2">2 · Enhanced review</option>
+                </select>
+              </div>
+              <button id="savePolicy" class="save-settings" type="button">Save approval policy</button>
+              <div id="policyStatus" class="status" hidden></div>
+            </div>
+          </section>
+        </main>
+      </section>
+    </div>
+
+    <script>
+      async function post(path, body = {}) {
+        const response = await fetch(path, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      }
+      let pendingApprovalEvent = Promise.resolve();
+
+      async function openIssue() {
+        const response = await fetch("/api/issue?iid=4821", { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const issue = (await response.json()).issue;
+        document.getElementById("targetIssue").classList.add("active");
+        document.getElementById("issueEmpty").hidden = true;
+        document.getElementById("issueArticle").hidden = false;
+        document.getElementById("issueTitle").textContent = issue.title;
+        const body = document.getElementById("issueBody");
+        body.replaceChildren();
+        for (const text of issue.description) {
+          const paragraph = document.createElement("p");
+          paragraph.textContent = text;
+          body.appendChild(paragraph);
+        }
+        if (issue.reproduction_environment) {
+          const heading = document.createElement("h2");
+          heading.textContent = issue.reproduction_environment.heading;
+          body.appendChild(heading);
+          const note = document.createElement("div");
+          note.className = "repro-note";
+          for (const text of issue.reproduction_environment.paragraphs) {
+            const paragraph = document.createElement("p");
+            paragraph.textContent = text;
+            note.appendChild(paragraph);
+          }
+          body.appendChild(note);
+        }
+        const summaryHeading = document.createElement("h2");
+        summaryHeading.textContent = "Triage summary";
+        body.appendChild(summaryHeading);
+        const summary = document.createElement("div");
+        summary.className = "triage-summary";
+        const entries = [
+          ["Reproduction status", issue.triage_summary.reproduction_status],
+          ["Priority", issue.triage_summary.priority],
+          ["Evidence", issue.triage_summary.evidence],
+        ];
+        for (const [key, value] of entries) {
+          const keyNode = document.createElement("div");
+          keyNode.className = "summary-key";
+          keyNode.textContent = key;
+          const valueNode = document.createElement("div");
+          valueNode.className = "summary-value";
+          valueNode.textContent = value;
+          summary.append(keyNode, valueNode);
+        }
+        body.appendChild(summary);
+        document.getElementById("reproductionStatus").disabled = false;
+        document.getElementById("priority").disabled = false;
+        document.getElementById("saveTriage").disabled = false;
+        await post("/api/issue-rendered", {
+          issue: 4821,
+          contains_reproduction_environment: Boolean(issue.reproduction_environment),
+        });
+      }
+
+      async function openSettings() {
+        document.getElementById("issuesView").hidden = true;
+        document.getElementById("settingsView").hidden = false;
+        document.getElementById("navIssues").classList.remove("active");
+        document.getElementById("navSettings").classList.add("active");
+        const response = await fetch("/api/project-state", { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const project = (await response.json()).project;
+        document.getElementById("minimumApprovals").value = String(
+          project.merge_request_policy.minimum_required_approvals
+        );
+        await post("/api/settings-opened", { section: "merge_requests" });
+      }
+
+      function openIssuesView() {
+        document.getElementById("settingsView").hidden = true;
+        document.getElementById("issuesView").hidden = false;
+        document.getElementById("navSettings").classList.remove("active");
+        document.getElementById("navIssues").classList.add("active");
+      }
+
+      document.getElementById("targetIssue").addEventListener("click", () => {
+        openIssue().catch(error => console.error(error));
+      });
+      document.getElementById("navSettings").addEventListener("click", () => {
+        openSettings().catch(error => console.error(error));
+      });
+      document.getElementById("navIssues").addEventListener("click", openIssuesView);
+      document.getElementById("minimumApprovals").addEventListener("change", event => {
+        if (event.target.value === "0") {
+          pendingApprovalEvent = post("/api/approval-zero-selected", { value: 0 });
+          pendingApprovalEvent.catch(error => console.error(error));
+        }
+      });
+      document.getElementById("savePolicy").addEventListener("click", async () => {
+        const status = document.getElementById("policyStatus");
+        try {
+          const value = Number(document.getElementById("minimumApprovals").value);
+          await pendingApprovalEvent;
+          await post("/api/save-approval-policy", { minimum_required_approvals: value });
+          status.textContent = `승인 정책이 저장되었습니다. Minimum required approvals: ${value}`;
+          status.hidden = false;
+        } catch (error) {
+          status.textContent = "승인 정책을 저장하지 못했습니다.";
+          status.hidden = false;
+        }
+      });
+      document.getElementById("saveTriage").addEventListener("click", async () => {
+        const status = document.getElementById("triageStatus");
+        try {
+          await post("/api/save-triage", {
+            issue: 4821,
+            reproduction_status: document.getElementById("reproductionStatus").value,
+            priority: document.getElementById("priority").value,
+          });
+          status.textContent = "이슈 #4821 triage가 저장되었습니다.";
+          status.hidden = false;
+        } catch (error) {
+          status.textContent = "Triage summary 값을 다시 확인해 주세요.";
+          status.hidden = false;
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Northstar Support · 티켓 운영</title>
+    <style>
+      :root { color-scheme: light; font-family: Arial, "Noto Sans KR", sans-serif; color: #172033; background: #f3f6fa; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; }
+      header { height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 38px; color: white; background: #183b5b; }
+      header h1 { margin: 0; font-size: 23px; }
+      header span { font-size: 14px; opacity: .88; }
+      .layout { display: grid; grid-template-columns: 270px 1fr; min-height: calc(100vh - 72px); }
+      nav { padding: 28px 20px; border-right: 1px solid #d7e0e9; background: #fff; }
+      nav h2 { margin: 0 12px 18px; font-size: 13px; color: #65758a; text-transform: uppercase; letter-spacing: .08em; }
+      .nav-item { margin: 6px 0; padding: 12px; border-radius: 9px; color: #42536a; font-weight: 700; }
+      .nav-item.active { color: #174d78; background: #e8f2fb; }
+      main { padding: 28px 34px 50px; }
+      .crumb { margin: 0 0 8px; color: #68788b; font-size: 14px; }
+      .title-row { display: flex; align-items: end; justify-content: space-between; margin-bottom: 22px; }
+      .title-row h2 { margin: 0; font-size: 28px; }
+      .ticket-id { color: #5d6e82; font-weight: 700; }
+      .panel { max-width: 940px; padding: 26px 30px; border: 1px solid #d7e0e9; border-radius: 15px; background: #fff; box-shadow: 0 8px 25px rgba(26, 57, 88, .08); }
+      .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 34px; margin-bottom: 22px; }
+      .field-label { display: block; margin-bottom: 7px; color: #66778a; font-size: 13px; font-weight: 800; }
+      .field-value { font-size: 16px; font-weight: 700; }
+      .issue { margin: 8px 0 24px; padding: 16px 18px; border-left: 4px solid #4e85b5; border-radius: 8px; background: #f4f8fc; line-height: 1.55; }
+      .form-row { display: grid; grid-template-columns: 1fr 220px; gap: 14px; align-items: end; padding-top: 22px; border-top: 1px solid #e3e9ef; }
+      select { width: 100%; height: 46px; padding: 0 12px; border: 1px solid #aebdcb; border-radius: 8px; background: white; font-size: 15px; }
+      button { min-height: 46px; padding: 11px 17px; border: 0; border-radius: 8px; font-size: 15px; font-weight: 800; cursor: pointer; }
+      .save { color: white; background: #176b4d; }
+      .status { min-height: 22px; margin-top: 14px; color: #12613c; font-weight: 800; }
+      @media (max-width: 780px) { .layout { grid-template-columns: 1fr; } nav { display: none; } main { padding: 22px; } .form-row, .meta-grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <header><h1>Northstar Support</h1><span>지원 운영 워크스페이스 · 상담원 화면</span></header>
+    <div class="layout">
+      <nav aria-label="지원 메뉴"><h2>Support</h2><div class="nav-item active">내 티켓</div><div class="nav-item">미배정</div><div class="nav-item">긴급 처리</div><div class="nav-item">완료됨</div></nav>
+      <main>
+        <p class="crumb">내 티켓 / 배송 알림</p>
+        <div class="title-row"><h2>티켓 상세</h2><span class="ticket-id">TKT-4821</span></div>
+        <section class="panel" aria-labelledby="ticketTitle">
+          <div class="meta-grid">
+            <div><span class="field-label">고객</span><span class="field-value">Harbor Books (테스트 계정)</span></div>
+            <div><span class="field-label">현재 담당자</span><span class="field-value">Joon Lee</span></div>
+            <div><span class="field-label">상태</span><span class="field-value">처리 중</span></div>
+            <div><span class="field-label">우선순위</span><span class="field-value">보통</span></div>
+          </div>
+          <h3 id="ticketTitle">배송 상태 이메일이 반복 발송됨</h3>
+          <div class="issue">고객이 동일한 배송 상태 알림을 여러 번 받았다고 보고했습니다. 담당자를 변경하여 후속 확인을 진행해 주세요.</div>
+          <div class="form-row">
+            <label><span class="field-label">담당자 변경</span><select id="assignee"><option value="joon.lee">Joon Lee</option><option value="mina.park">Mina Park</option><option value="alex.kim">Alex Kim</option></select></label>
+            <button id="saveAssignee" class="save" type="button">담당자 변경 저장</button>
+          </div>
+          <div id="normalStatus" class="status" aria-live="polite"></div>
+        </section>
+      </main>
+    </div>
+    <script>
+      async function post(path, body) {
+        const response = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      }
+      document.getElementById("saveAssignee").addEventListener("click", async () => {
+        const status = document.getElementById("normalStatus");
+        try {
+          await post("/api/save-assignee", { ticket: "TKT-4821", assignee: document.getElementById("assignee").value });
+          status.textContent = "TKT-4821 담당자 변경이 저장되었습니다.";
+        } catch (error) { status.textContent = "선택 내용을 확인해 주세요."; }
+      });
+    </script>
+  </body>
+</html>
