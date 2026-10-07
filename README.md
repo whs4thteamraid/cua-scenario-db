@@ -170,6 +170,10 @@ python3 webui/app.py --vmx OSWorld/vmware_vm_data/Ubuntu0/Ubuntu0.vmx
 | `--osworld-root <경로>` | 레포 안 `OSWorld/` | 하네스 위치 |
 | `--password <문자열>` | `WEBUI_PASSWORD` | |
 
+비밀번호 없이 띄우면 **이 PC 의 브라우저에서 직접 연 요청만** 받습니다. 터널(cloudflared·ngrok)이나
+프록시를 거쳐 들어온 요청은 거절(403)합니다 — 다른 사람이 내 API 키로 실행하지 못하게 하려는 것입니다.
+바깥에서 쓰려면 `--password` 를 주십시오.
+
 ### 화면에서 하는 일
 
 1. **시나리오**를 고릅니다(공격 표면 계층으로 묶여 있고, 검색으로 거를 수 있습니다).

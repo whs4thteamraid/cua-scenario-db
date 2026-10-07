@@ -1366,6 +1366,37 @@ class H(BaseHTTPRequestHandler):
     def log_message(self, *a):   # 콘솔 소음 억제
         pass
 
+    # 터널·프록시가 붙이는 헤더. 하나라도 있으면 이 PC 의 브라우저가 직접 보낸 요청이 아니다.
+    _FWD = ("X-Forwarded-For", "X-Forwarded-Host", "Forwarded", "X-Real-IP",
+            "CF-Connecting-IP", "True-Client-IP")
+    _LOCAL_HOSTS = ("127.0.0.1", "localhost", "[::1]")
+
+    def _local_only_ok(self) -> bool:
+        """비밀번호 없이 띄웠을 때: 이 PC 에서 직접 연 요청만 받는다.
+
+        ★ 경고문으로는 못 막는다. 127.0.0.1 에 붙어 있어도 cloudflared·ngrok 같은 터널은
+          localhost 로 들어오므로 바인딩 검사를 그대로 통과한다. 터널은 Host 를 공개 주소로
+          두거나 전달 헤더를 붙이므로, 그 둘을 보고 거절한다(DNS 리바인딩도 같이 막힌다)."""
+        if any(self.headers.get(h) for h in self._FWD):
+            return False
+        host = (self.headers.get("Host") or "").strip().lower()
+        name = host.rsplit(":", 1)[0] if not host.startswith("[") else host.split("]")[0] + "]"
+        return name in self._LOCAL_HOSTS
+
+    def _gate(self) -> bool:
+        """True 면 통과. False 면 응답까지 보낸 상태다."""
+        if self.PASSWORD:
+            if self._authed():
+                return True
+            self._challenge()
+            return False
+        if self._local_only_ok():
+            return True
+        self._send(403, "이 서버는 비밀번호 없이 떠 있어 이 PC 에서만 열립니다. "
+                        "바깥에서 쓰려면 --password(또는 WEBUI_PASSWORD)를 주고 다시 띄우십시오."
+                        .encode(), "text/plain; charset=utf-8")
+        return False
+
     def _authed(self) -> bool:
         """터널로 노출하는 순간 링크를 아는 누구나 실행 버튼을 누를 수 있다
            (= 네 API 키로 과금). 비밀번호가 설정돼 있으면 전 경로를 막는다."""
@@ -1403,8 +1434,8 @@ class H(BaseHTTPRequestHandler):
                    "application/json; charset=utf-8")
 
     def do_GET(self):
-        if not self._authed():
-            return self._challenge()
+        if not self._gate():
+            return
         u = urlparse(self.path)
         p = u.path
         S = self.ST
@@ -1466,8 +1497,8 @@ class H(BaseHTTPRequestHandler):
         return self._send(200, tgt.read_bytes(), ctype)
 
     def do_POST(self):
-        if not self._authed():
-            return self._challenge()
+        if not self._gate():
+            return
         u = urlparse(self.path)
         S = self.ST
         n = int(self.headers.get("Content-Length") or 0)
@@ -1564,14 +1595,17 @@ def main():
     if DEPS_HINT:
         print(f"[webui] ⚠ {DEPS_HINT}")
     print(f"[webui] 모델 {list(H.ST.models)}")
-    print(f"[webui] 시나리오 {H.ST.scenarios}")
-    print(f"[webui] http://{a.host}:{a.port}  (vmx={a.vmx}, 시행 상한 {MAX_TRIALS})")
-    if H.PASSWORD:
-        print("[webui] Basic 인증 켜짐 — 아이디는 아무거나, 비밀번호만 맞으면 됨")
-    else:
-        print("[webui] ⚠ 인증 없음. 로컬에서만 쓸 것. "
-              "터널(cloudflared/ngrok)로 노출하려면 --password 를 반드시 줄 것 "
-              "— 링크를 아는 누구나 실행해 API 키를 태울 수 있다.")
+    _sc = H.ST.scenarios
+    _cnt = {}
+    for d in _sc:
+        _cnt[d.get("kind_label", "?")] = _cnt.get(d.get("kind_label", "?"), 0) + 1
+    _off = [d["name"] for d in _sc if not d.get("runnable")]
+    print(f"[webui] 시나리오 {len(_sc)}개 — " + " · ".join(f"{k} {v}" for k, v in _cnt.items())
+          + (f"  (UI 미지원: {', '.join(_off)})" if _off else ""))
+    print(f"[webui] VM {a.vmx}")
+    print(f"[webui] http://{a.host}:{a.port}  "
+          f"({'Basic 인증 — 비밀번호만 맞으면 됨' if H.PASSWORD else '이 PC 에서만 열림'}"
+          f" · 시행 상한 {MAX_TRIALS})")
     if a.host not in ("127.0.0.1", "localhost") and not H.PASSWORD:
         raise SystemExit("[webui] 중단: 외부 바인딩인데 --password 가 없음")
     ThreadingHTTPServer((a.host, a.port), H).serve_forever()
